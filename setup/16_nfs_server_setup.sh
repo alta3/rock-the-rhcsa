@@ -18,7 +18,7 @@ sudo exportfs -rav
 sudo systemctl enable --now nfs-server rpcbind
 
 # Set up the NFS_SERVER environment variable with the system's IP address on eth0
-echo "export NFS_SERVER=\$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')" >> ~/.bashrc
+echo "export NFS_SERVER=$(ip -4 -o -br addr show up scope global | awk '{print $3}' | cut -d/ -f1)" >> ~/.bashrc
 source ~/.bashrc
 
 echo "Setup complete!"
