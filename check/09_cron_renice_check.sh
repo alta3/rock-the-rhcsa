@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get the PID of the cron process
-cron_pid=$(pgrep cron)
+cron_pid=$(pgrep crond)
 
 # Check if the cron process has been reniced to priority 10
 if [[ $(ps -o ni= -p "$cron_pid" | tr -d ' ') -eq 10 ]]; then
