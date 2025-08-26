@@ -1,31 +1,21 @@
 #!/bin/bash
+set -euo pipefail
+IFACE="ens4"
 
-# Define the interface name
-INTERFACE="ens4"
-CON_NAME="ens4"
+echo "=== Resetting $IFACE for RHCSA lab ==="
 
-# Check if the interface exists
-if ip link show $INTERFACE > /dev/null 2>&1; then
-    echo "Interface $INTERFACE exists. Tearing it down..."
-    nmcli connection delete $CON_NAME > /dev/null 2>&1 || true
-    ip link delete $INTERFACE
-    echo "Interface $INTERFACE removed."
-else
-    echo "Interface $INTERFACE does not exist. Proceeding to create it..."
+# Delete old profiles named ens4
+for c in $(nmcli -t -f NAME con show | grep "^$IFACE$"); do
+  sudo nmcli con delete "$c" || true
+done
+
+# Create dummy device if missing
+if ! ip link show "$IFACE" >/dev/null 2>&1; then
+  sudo ip link add "$IFACE" type dummy
 fi
+sudo ip link set "$IFACE" up
 
-# Create the bridge interface
-echo "Creating bridge interface $INTERFACE..."
-nmcli connection add type bridge ifname $INTERFACE con-name $CON_NAME
+# Add a clean ethernet profile *explicitly bound to ens4*
+sudo nmcli con add type ethernet con-name "$IFACE" ifname "$IFACE"
 
-# Bring up the interface
-echo "Bringing up interface $INTERFACE..."
-nmcli connection up $CON_NAME
-
-# Verify the interface is up
-if ip link show $INTERFACE | grep -q "UP"; then
-    echo "Interface $INTERFACE created and active."
-else
-    echo "Failed to create or activate $INTERFACE."
-    exit 1
-fi
+echo "Lab setup complete!"
