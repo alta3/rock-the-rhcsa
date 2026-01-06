@@ -11,8 +11,8 @@ sudo mkdir -p /home/daffy
 sudo chown daffy:daffy /home/daffy
 
 # Set the umask to 022 (incorrect for the test requirements)
-echo "umask 022" | sudo tee -a /home/daffy/.bashrc > /dev/null
-echo "umask 022" | sudo tee -a /home/daffy/.bash_profile > /dev/null
+echo "umask 002" | sudo tee -a /home/daffy/.bashrc > /dev/null
+echo "umask 002" | sudo tee -a /home/daffy/.bash_profile > /dev/null
 sudo chown daffy:daffy /home/daffy/.bashrc /home/daffy/.bash_profile
 
 # Also apply globally for redundancy (with the wrong umask)
