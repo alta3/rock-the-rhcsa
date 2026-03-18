@@ -9,13 +9,16 @@ for c in $(nmcli -t -f NAME con show | grep "^$IFACE$"); do
   sudo nmcli con delete "$c" || true
 done
 
-# Create dummy device if missing
-if ! ip link show "$IFACE" >/dev/null 2>&1; then
-  sudo ip link add "$IFACE" type dummy
+# Delete old device if it exists
+if ip link show "$IFACE" >/dev/null 2>&1; then
+  sudo ip link delete "$IFACE" type dummy || true
 fi
-sudo ip link set "$IFACE" up
 
-# Add a clean ethernet profile *explicitly bound to ens4*
-sudo nmcli con add type ethernet con-name "$IFACE" ifname "$IFACE"
+# Create a clean NetworkManager-managed dummy connection and device
+sudo nmcli connection add type dummy ifname "$IFACE" con-name "$IFACE" \
+  ipv4.method disabled ipv6.method link-local
+
+# Bring it up so students can modify it during the lab
+sudo nmcli connection up "$IFACE"
 
 echo "Lab setup complete!"
