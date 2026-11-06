@@ -2,6 +2,11 @@
 set -euo pipefail
 IFACE="ens4"
 
+# Make sure NetworkManager is available (some lab images mask it)
+sudo systemctl unmask NetworkManager
+sudo systemctl enable --now NetworkManager
+nm-online -q -t 30 || { echo "NetworkManager did not come up"; exit 1; }
+
 echo "=== Resetting $IFACE for RHCSA lab ==="
 
 # Delete old profiles named ens4
