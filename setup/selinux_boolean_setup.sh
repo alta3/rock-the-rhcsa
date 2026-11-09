@@ -1,6 +1,7 @@
 #!/bin/bash
+# selinux_boolean_setup.sh (RHCSA practice)
 
-# Ensure the SELinux Boolean is disabled
-sudo setsebool -P logrotate_read_inside_containers &>/dev/null
+# Start the task with the boolean off, both now and persistently.
+sudo setsebool -P logrotate_read_inside_containers off
 
 echo "Setup is complete. Begin your task!"

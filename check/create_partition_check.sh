@@ -1,22 +1,30 @@
 #!/bin/bash
+# create_partition_check.sh (RHCSA practice)
+# A ~1 GB partition, formatted vfat, mounted on /mydata now and listed in
+# /etc/fstab so it mounts at boot.
 
-pass=true
+pass() { echo -e "\e[32mSUCCESS!\e[0m"; exit 0; }
+fail() { echo -e "\e[31mNO PASS - TRY AGAIN!\e[0m"; exit 1; }
 
-# Mounted on /mydata as vfat
-mount | grep -q "/mydata type vfat" || pass=false
+# Mounted right now, as vfat
+src=$(findmnt -n -o SOURCE --mountpoint /mydata 2>/dev/null)
+[[ -n "$src" ]] || fail
+[[ "$(findmnt -n -o FSTYPE --mountpoint /mydata)" == "vfat" ]] || fail
 
-# Persistent: entry exists in /etc/fstab
-grep -q "/mydata" /etc/fstab || pass=false
+# Persistent: a real (uncommented) fstab entry for /mydata that resolves to
+# the same device that is mounted now
+fstab_src=$(findmnt --fstab --evaluate -n -o SOURCE --mountpoint /mydata 2>/dev/null)
+[[ -n "$fstab_src" ]] || fail
+[[ "$(readlink -f "$fstab_src")" == "$(readlink -f "$src")" ]] || fail
 
-# Partition is roughly 1G (1073741824 bytes)
-size=$(lsblk -bno SIZE "$(findmnt -no SOURCE /mydata)" 2>/dev/null)
-[[ "$size" -eq 1073741824 ]] || pass=false
+# It's a partition of about 1 GB: anything from 1 GB (1,000,000,000 bytes)
+# minus 5% to 1 GiB (1,073,741,824 bytes) plus 5% is accepted.
+[[ "$(lsblk -no TYPE "$src" 2>/dev/null)" == "part" ]] || fail
+size=$(lsblk -bno SIZE "$src" 2>/dev/null)
+[[ -n "$size" ]] || fail
+(( size >= 950000000 && size <= 1127428915 )) || fail
 
-if $pass; then
-    echo -e "\e[32mSUCCESS!\e[0m"
-else
-    echo -e "\e[31mNO PASS- TRY AGAIN!\e[0m"
-fi
+pass
 
 
 ## Steps to succeed

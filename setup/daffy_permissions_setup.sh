@@ -1,4 +1,5 @@
 #!/bin/bash
+# daffy_permissions_setup.sh (RHCSA practice)
 
 # Ensure the user "daffy" exists
 if ! id "daffy" &>/dev/null; then
@@ -10,9 +11,13 @@ fi
 sudo mkdir -p /home/daffy
 sudo chown daffy:daffy /home/daffy
 
-# Intentionally wrong umask (002) in both files — student must fix both
-echo "umask 002" | sudo tee -a /home/daffy/.bashrc > /dev/null
-echo "umask 002" | sudo tee -a /home/daffy/.bash_profile > /dev/null
-sudo chown daffy:daffy /home/daffy/.bashrc /home/daffy/.bash_profile
+# Intentionally wrong umask (002) in both files; the student must fix both.
+# Remove any umask lines first so re-running setup doesn't stack them up.
+for f in /home/daffy/.bashrc /home/daffy/.bash_profile; do
+    sudo touch "$f"
+    sudo sed -i '/^[[:space:]]*umask[[:space:]]/d' "$f"
+    echo "umask 002" | sudo tee -a "$f" > /dev/null
+    sudo chown daffy:daffy "$f"
+done
 
 echo "Setup complete!"
