@@ -1,8 +1,12 @@
 #!/bin/bash
+# create_symlink_check.sh (RHCSA practice)
+# /tmp/passwd_link must be a soft link that resolves to /etc/passwd
+# (absolute or relative link both count).
 
-# Check if a soft link exists in /tmp pointing to /etc/passwd
-if [[ -L /tmp/passwd_link && $(readlink /tmp/passwd_link) == "/etc/passwd" ]]; then
-    echo -e "\e[32mSUCCESS!\e[0m"
-else
-    echo -e "\e[31mNO PASS- TRY AGAIN!\e[0m"
-fi
+pass() { echo -e "\e[32mSUCCESS!\e[0m"; exit 0; }
+fail() { echo -e "\e[31mNO PASS - TRY AGAIN!\e[0m"; exit 1; }
+
+[[ -L /tmp/passwd_link ]] || fail
+[[ "$(readlink -f /tmp/passwd_link)" == "/etc/passwd" ]] || fail
+
+pass
