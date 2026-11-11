@@ -10,7 +10,11 @@ APP=io.github.cmus.cmus
 
 command -v flatpak &>/dev/null || fail
 
-flatpak remotes --system --columns=name 2>/dev/null | grep -qx flathub || fail
+# The system remote must be called flathub, point at Flathub, and be enabled.
+remote=$(flatpak remotes --system --show-disabled --columns=name,url,options 2>/dev/null | awk -F'\t' '$1=="flathub"')
+[[ -n "$remote" ]]                  || fail
+[[ "$remote" == *flathub.org* ]]    || fail
+[[ "$remote" != *disabled* ]]       || fail
 
 # Installed system-wide (not --user), and it came from flathub.
 flatpak list --system --app --columns=application,origin 2>/dev/null \

@@ -22,13 +22,15 @@ grep -qE '^[^#]*[[:space:]]/shares(/|[[:space:]]|$)' /etc/fstab && fail
 [[ "$(timeout 15 cat /shares/docs/manual.txt 2>/dev/null)" == "$FILE_TEXT" ]] || fail
 
 # Because the NFS server is this same machine, autofs skips NFS and
-# bind-mounts the directory (SOURCE looks like /dev/sda4[/exports/docs]).
-# Accept that, or a real NFS mount of the export.
+# bind-mounts the directory. Accept that (same device and inode as
+# /exports/docs), or a real NFS mount of the export from this host by any
+# local name (localhost, 127.0.0.1, the hostname or its IP).
 read -r fstype source options < <(findmnt -n -o FSTYPE,SOURCE,OPTIONS --mountpoint /shares/docs 2>/dev/null | tail -n 1)
+[[ -n "$fstype" ]] || fail
 if [[ "$fstype" == nfs* ]]; then
-    [[ "$source" =~ ^(localhost|127\.0\.0\.1|\[::1\]):/exports/docs/?$ ]] || fail
+    [[ "$source" == *:/exports/docs || "$source" == *:/exports/docs/ ]] || fail
 else
-    [[ "$source" == *"[/exports/docs]" ]] || fail
+    [[ "$(stat -c %d:%i /shares/docs 2>/dev/null)" == "$(stat -c %d:%i /exports/docs 2>/dev/null)" ]] || fail
 fi
 [[ ",$options," == *",ro,"* ]] || fail
 
