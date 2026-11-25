@@ -1,15 +1,18 @@
 #!/bin/bash
 
-# Check if wget is installed, install it if not
-if ! command -v wget &> /dev/null; then
-    sudo yum install -y wget
-fi
-
 if ! command -v sshpass &> /dev/null; then
     sudo yum install -y sshpass
 fi
 
-# Download the file to /home/student/longfile.txt
-wget -O /home/student/longfile.txt "https://github.com/v0re/dirb/raw/refs/heads/master/wordlists/big.txt"
+# Create the file to copy (no external download)
+seq 1 100000 | sed 's/^/line /' > /home/student/longfile.txt
 
-echo "Setup complete!"
+# Set BCHD's student password to match the lab text / check script
+read -p "Enter the IP address of the remote machine (bchd): " remote_ip
+if ssh -o BatchMode=yes -o StrictHostKeyChecking=no student@"$remote_ip" \
+     "echo 'student:alta3' | sudo chpasswd"; then
+    echo "Setup complete!"
+else
+    echo -e "\e[31mSetup failed: could not reach bchd at $remote_ip\e[0m" >&2
+    exit 1
+fi
